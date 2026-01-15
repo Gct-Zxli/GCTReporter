@@ -38,12 +38,14 @@ public class AuthController {
     }
     
     /**
-     * 用户登出接口（占位）
-     * TODO: 在US002中实现
+     * 用户登出接口
      */
     @PostMapping("/logout")
     public ResponseEntity<Void> logout() {
         log.info("收到登出请求");
+        
+        authService.logout();
+        
         return ResponseEntity.ok().build();
     }
 }

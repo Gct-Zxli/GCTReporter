@@ -25,6 +25,7 @@ public class AuthService {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SessionService sessionService;
     
     /**
      * 用户登录
@@ -52,8 +53,10 @@ public class AuthService {
                 throw new BusinessException("INVALID_PASSWORD", "用户名或密码错误");
             }
             
-            // 生成Token（简化版，使用UUID）
-            // TODO: 在US003中实现真正的Session管理
+            // 创建Session
+            sessionService.createSession(user.getId(), user.getUsername(), user.getRole());
+            
+            // 生成Token（保留UUID方式用于前端localStorage）
             String token = "Bearer-" + UUID.randomUUID().toString();
             
             log.info("用户登录成功, 用户ID: {}, 用户名: {}, 角色: {}", 
@@ -72,6 +75,30 @@ public class AuthService {
             log.error("用户登录失败, 用户名: {}, 错误信息: {}", 
                 request.getUsername(), e.getMessage(), e);
             throw new BusinessException("LOGIN_FAILED", "登录失败，请稍后重试");
+        }
+    }
+    
+    /**
+     * 用户登出
+     */
+    public void logout() {
+        try {
+            Long userId = sessionService.getCurrentUserId();
+            String username = sessionService.getCurrentUsername();
+            
+            log.info("用户登出开始, 用户ID: {}, 用户名: {}", userId, username);
+            
+            // 销毁Session
+            sessionService.destroySession();
+            
+            log.info("用户登出成功, 用户ID: {}, 用户名: {}", userId, username);
+            
+        } catch (BusinessException e) {
+            // Session不存在或已过期，记录警告但不抛出异常
+            log.warn("登出时Session不存在: {}", e.getMessage());
+        } catch (Exception e) {
+            log.error("用户登出失败, 错误信息: {}", e.getMessage(), e);
+            throw new BusinessException("LOGOUT_FAILED", "登出失败，请稍后重试");
         }
     }
 }
