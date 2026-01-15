@@ -1,6 +1,5 @@
 package com.gct.reportgenerator.interceptor;
 
-import com.gct.reportgenerator.service.SessionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,6 +8,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Objects;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -25,9 +26,6 @@ class AuthInterceptorIntegrationTest {
     
     @Autowired
     private MockMvc mockMvc;
-    
-    @Autowired
-    private SessionService sessionService;
     
     private MockHttpSession mockSession;
     
@@ -61,12 +59,12 @@ class AuthInterceptorIntegrationTest {
         mockMvc.perform(post("/api/v1/auth/login")
                 .contentType("application/json")
                 .content("{\"username\":\"admin\",\"password\":\"admin123\"}")
-                .session(mockSession))
+                .session(Objects.requireNonNull(mockSession)))
                .andExpect(status().isOk());
         
         // 然后访问受保护的接口
         mockMvc.perform(get("/api/v1/test/current-user")
-                .session(mockSession))
+                .session(Objects.requireNonNull(mockSession)))
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.username").value("admin"))
                .andExpect(jsonPath("$.role").value("ADMIN"));
@@ -79,22 +77,22 @@ class AuthInterceptorIntegrationTest {
         mockMvc.perform(post("/api/v1/auth/login")
                 .contentType("application/json")
                 .content("{\"username\":\"admin\",\"password\":\"admin123\"}")
-                .session(mockSession))
+                .session(Objects.requireNonNull(mockSession)))
                .andExpect(status().isOk());
         
         // 2. 验证登录成功
         mockMvc.perform(get("/api/v1/test/current-user")
-                .session(mockSession))
+                .session(Objects.requireNonNull(mockSession)))
                .andExpect(status().isOk());
         
         // 3. 登出
         mockMvc.perform(post("/api/v1/auth/logout")
-                .session(mockSession))
+                .session(Objects.requireNonNull(mockSession)))
                .andExpect(status().isOk());
         
         // 4. 再次访问应该返回401
         mockMvc.perform(get("/api/v1/test/current-user")
-                .session(mockSession))
+                .session(Objects.requireNonNull(mockSession)))
                .andExpect(status().isUnauthorized());
     }
 }
