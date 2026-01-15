@@ -31,9 +31,9 @@ public class DatabaseInitializationTest {
             for (String table : tables) {
                 try (var stmt = conn.prepareStatement("SELECT name FROM sqlite_master WHERE type='table' AND name=?")) {
                     stmt.setString(1, table);
-                    ResultSet rs = stmt.executeQuery();
-                    assertTrue(rs.next(), "Table " + table + " should exist");
-                    rs.close();
+                    try (var rs = stmt.executeQuery()) {
+                        assertTrue(rs.next(), "Table " + table + " should exist");
+                    }
                 }
             }
         }
@@ -42,35 +42,32 @@ public class DatabaseInitializationTest {
     @Test
     public void testFlywaySchemaHistoryExists() throws Exception {
         try (Connection conn = dataSource.getConnection();
-             Statement stmt = conn.createStatement()) {
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM flyway_schema_history")) {
             
-            ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM flyway_schema_history");
             assertTrue(rs.next(), "flyway_schema_history table should exist");
             int count = rs.getInt(1);
             assertEquals(2, count, "flyway_schema_history should have 2 records");
-            rs.close();
         }
     }
 
     @Test
     public void testTestAccountsExist() throws Exception {
         try (Connection conn = dataSource.getConnection();
-             Statement stmt = conn.createStatement()) {
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM users")) {
             
-            ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM users");
             assertTrue(rs.next(), "users table should exist");
             int count = rs.getInt(1);
             assertEquals(3, count, "users table should have 3 test accounts");
-            rs.close();
         }
     }
 
     @Test
     public void testTestAccountDetails() throws Exception {
         try (Connection conn = dataSource.getConnection();
-             Statement stmt = conn.createStatement()) {
-            
-            ResultSet rs = stmt.executeQuery("SELECT username, role, enabled FROM users ORDER BY id");
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT username, role, enabled FROM users ORDER BY id")) {
             
             // Check admin account
             assertTrue(rs.next());
@@ -89,17 +86,15 @@ public class DatabaseInitializationTest {
             assertEquals("viewer", rs.getString("username"));
             assertEquals("VIEWER", rs.getString("role"));
             assertEquals(1, rs.getInt("enabled"));
-            
-            rs.close();
         }
     }
 
     @Test
     public void testPasswordEncryption() throws Exception {
         try (Connection conn = dataSource.getConnection();
-             Statement stmt = conn.createStatement()) {
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT username, password FROM users WHERE username='admin'")) {
             
-            ResultSet rs = stmt.executeQuery("SELECT username, password FROM users WHERE username='admin'");
             assertTrue(rs.next(), "admin user should exist");
             
             String hashedPassword = rs.getString("password");
@@ -111,18 +106,16 @@ public class DatabaseInitializationTest {
                 "admin123 should match the stored hash");
             assertFalse(passwordEncoder.matches("wrongpassword", hashedPassword), 
                 "wrong password should not match");
-            
-            rs.close();
         }
     }
 
     @Test
     public void testTableStructure() throws Exception {
         try (Connection conn = dataSource.getConnection();
-             Statement stmt = conn.createStatement()) {
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("PRAGMA table_info(users)")) {
             
             // Check users table has all required columns
-            ResultSet rs = stmt.executeQuery("PRAGMA table_info(users)");
             int columnCount = 0;
             boolean hasId = false, hasUsername = false, hasPassword = false, hasRole = false, 
                     hasEnabled = false, hasCreatedAt = false, hasUpdatedAt = false;
@@ -147,8 +140,6 @@ public class DatabaseInitializationTest {
             assertTrue(hasEnabled, "users table should have 'enabled' column");
             assertTrue(hasCreatedAt, "users table should have 'created_at' column");
             assertTrue(hasUpdatedAt, "users table should have 'updated_at' column");
-            
-            rs.close();
         }
     }
 }
