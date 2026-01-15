@@ -23,16 +23,18 @@ public class DatabaseInitializationTest {
 
     @Test
     public void testDatabaseTablesExist() throws Exception {
-        try (Connection conn = dataSource.getConnection();
-             Statement stmt = conn.createStatement()) {
+        try (Connection conn = dataSource.getConnection()) {
             
-            // Check if all 6 tables exist
+            // Check if all 6 tables exist using prepared statement
             String[] tables = {"users", "reports", "report_params", "report_columns", "report_permissions", "execution_logs"};
             
             for (String table : tables) {
-                ResultSet rs = stmt.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='" + table + "'");
-                assertTrue(rs.next(), "Table " + table + " should exist");
-                rs.close();
+                try (var stmt = conn.prepareStatement("SELECT name FROM sqlite_master WHERE type='table' AND name=?")) {
+                    stmt.setString(1, table);
+                    ResultSet rs = stmt.executeQuery();
+                    assertTrue(rs.next(), "Table " + table + " should exist");
+                    rs.close();
+                }
             }
         }
     }
@@ -138,8 +140,13 @@ public class DatabaseInitializationTest {
             }
             
             assertEquals(7, columnCount, "users table should have 7 columns");
-            assertTrue(hasId && hasUsername && hasPassword && hasRole && hasEnabled && hasCreatedAt && hasUpdatedAt,
-                "users table should have all required columns");
+            assertTrue(hasId, "users table should have 'id' column");
+            assertTrue(hasUsername, "users table should have 'username' column");
+            assertTrue(hasPassword, "users table should have 'password' column");
+            assertTrue(hasRole, "users table should have 'role' column");
+            assertTrue(hasEnabled, "users table should have 'enabled' column");
+            assertTrue(hasCreatedAt, "users table should have 'created_at' column");
+            assertTrue(hasUpdatedAt, "users table should have 'updated_at' column");
             
             rs.close();
         }
