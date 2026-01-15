@@ -19,7 +19,9 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        // Temporarily disable all security for initial setup
+        // Temporarily disable security for initial setup
+        // CSRF protection will be enabled in US001 (User Login) story
+        // TODO: Enable CSRF protection and implement proper authentication in US001
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
