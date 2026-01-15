@@ -92,20 +92,22 @@ public class DatabaseInitializationTest {
     @Test
     public void testPasswordEncryption() throws Exception {
         try (Connection conn = dataSource.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT username, password FROM users WHERE username='admin'")) {
+             var stmt = conn.prepareStatement("SELECT username, password FROM users WHERE username=?")) {
             
-            assertTrue(rs.next(), "admin user should exist");
-            
-            String hashedPassword = rs.getString("password");
-            assertNotNull(hashedPassword);
-            assertTrue(hashedPassword.startsWith("$2a$"), "Password should be BCrypt encrypted");
-            
-            // Verify the password matches "admin123"
-            assertTrue(passwordEncoder.matches("admin123", hashedPassword), 
-                "admin123 should match the stored hash");
-            assertFalse(passwordEncoder.matches("wrongpassword", hashedPassword), 
-                "wrong password should not match");
+            stmt.setString(1, "admin");
+            try (var rs = stmt.executeQuery()) {
+                assertTrue(rs.next(), "admin user should exist");
+                
+                String hashedPassword = rs.getString("password");
+                assertNotNull(hashedPassword);
+                assertTrue(hashedPassword.startsWith("$2a$"), "Password should be BCrypt encrypted");
+                
+                // Verify the password matches "admin123"
+                assertTrue(passwordEncoder.matches("admin123", hashedPassword), 
+                    "admin123 should match the stored hash");
+                assertFalse(passwordEncoder.matches("wrongpassword", hashedPassword), 
+                    "wrong password should not match");
+            }
         }
     }
 
