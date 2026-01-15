@@ -1,0 +1,59 @@
+# EditorConfig配置文件
+# 统一团队代码编辑器配置
+# https://editorconfig.org
+
+# 顶级配置文件
+root = true
+
+# 所有文件的默认配置
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Java文件
+[*.java]
+indent_size = 4
+max_line_length = 120
+
+# XML文件（Maven POM等）
+[*.{xml,pom}]
+indent_size = 4
+
+# YAML文件
+[*.{yml,yaml}]
+indent_size = 2
+
+# Markdown文件
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = off
+
+# Properties文件
+[*.properties]
+indent_size = 4
+
+# JavaScript/TypeScript文件
+[*.{js,ts,jsx,tsx,vue}]
+indent_size = 2
+max_line_length = 100
+
+# JSON文件
+[*.json]
+indent_size = 2
+
+# Shell脚本
+[*.sh]
+indent_size = 2
+end_of_line = lf
+
+# Bat脚本
+[*.bat]
+end_of_line = crlf
+
+# SQL文件
+[*.sql]
+indent_size = 2

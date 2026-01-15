@@ -1,0 +1,183 @@
+# GCT Reporter 项目 .gitignore
+
+### Java ###
+# 编译输出
+*.class
+target/
+out/
+build/
+
+# 日志文件
+*.log
+logs/
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+### Spring Boot ###
+spring-boot-*.jar
+!spring-boot-starter-*.jar
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+.idea_modules/
+atlassian-ide-plugin.xml
+
+### Eclipse ###
+.classpath
+.project
+.settings/
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+
+### VS Code ###
+.vscode/
+*.code-workspace
+.history/
+
+### Node.js ###
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 依赖目录
+jspm_packages/
+
+# 构建输出
+dist/
+dist-ssr/
+*.local
+
+# 环境变量
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+### 数据库 ###
+# SQLite数据库文件
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+data/
+
+# Oracle客户端
+tnsnames.ora
+sqlnet.ora
+
+### 操作系统 ###
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+### 测试覆盖率 ###
+coverage/
+*.lcov
+.nyc_output/
+
+# Java测试报告
+target/surefire-reports/
+target/failsafe-reports/
+target/site/jacoco/
+
+### 临时文件 ###
+*.tmp
+*.temp
+*.swp
+*.swo
+*.swn
+.cache/
+
+### 安全文件 ###
+# 私钥和证书
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+*.truststore
+
+# 配置文件（包含敏感信息）
+application-local.yml
+application-local.properties
+application-secret.yml
+application-secret.properties
+
+### 打包文件 ###
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# 保留某些必要的jar
+!gradle/wrapper/gradle-wrapper.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+### IDE生成文件 ###
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### 其他 ###
+# 备份文件
+*.backup
+*.old
+
+# 文档临时文件
+~$*.docx
+~$*.xlsx
+~$*.pptx
+
+# 系统缓存
+.cache
+
+# 依赖锁定文件（根据团队约定）
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
