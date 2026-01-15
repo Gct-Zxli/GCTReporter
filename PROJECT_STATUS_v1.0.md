@@ -686,6 +686,119 @@
 
 ---
 
+### 📦 任务US001: 用户登录功能 (2026-01-15)
+
+**任务目标**: 实现用户登录认证功能，支持多角色登录 | **预估工时**: 6h | **实际工时**: 6h ✅
+
+#### 执行序列:
+
+**🕘 09:00-10:00 | 后端实体层开发 (1h)**
+
+- ✅ 创建User实体类 (User.java) - @Entity注解，JPA映射
+- ✅ 配置Lombok注解 - @Data、@Builder、@NoArgsConstructor、@AllArgsConstructor
+- ✅ 定义密码字段 - BCrypt加密存储格式
+- ✅ 添加角色枚举 - ADMIN/DESIGNER/VIEWER
+- ✅ 添加enabled字段 - 支持账号启用/禁用
+- **成果**: User实体类创建完成，符合JPA规范
+
+**🕘 10:00-10:30 | 数据访问层开发 (0.5h)**
+
+- ✅ 创建UserRepository接口 - 继承JpaRepository
+- ✅ 添加findByUsername方法 - 用户名唯一性查询
+- ✅ 添加findByUsernameAndEnabled方法 - 登录时验证账号状态
+- ✅ 配置JPA查询方法命名规范
+- **成果**: Repository层完成，支持用户查询
+
+**🕘 10:30-12:30 | 认证服务层开发 (2h)**
+
+- ✅ 创建LoginRequest DTO - @Valid参数校验注解
+- ✅ 创建LoginResponse DTO - token、用户信息封装
+- ✅ 创建AuthService业务类 - @Service + @Slf4j + @RequiredArgsConstructor
+- ✅ 实现login方法核心逻辑:
+  - 用户名查询（不存在抛出USER_NOT_FOUND）
+  - 账号状态验证（禁用抛出USER_DISABLED）
+  - BCrypt密码验证（错误抛出INVALID_PASSWORD）
+  - UUID Token生成（临时方案，待US003替换为Session）
+  - 成功返回LoginResponse
+- ✅ 添加完整日志记录 - info/error级别
+- **决策点**: 临时使用UUID作为Token，US003将替换为真实Session机制
+- **成果**: 认证业务逻辑完成，密码验证安全可靠
+
+**🕘 13:30-14:00 | 异常处理机制 (0.5h)**
+
+- ✅ 创建BusinessException自定义异常 - 携带错误码和错误消息
+- ✅ 创建ErrorResponse DTO - 统一错误响应格式
+- ✅ 创建GlobalExceptionHandler全局异常处理器:
+  - @ControllerAdvice注解
+  - 处理BusinessException → 401/403状态码
+  - 处理MethodArgumentNotValidException → 400状态码
+  - 处理Exception → 500状态码
+  - 所有异常记录error日志
+- **成果**: 异常处理机制完善，错误信息统一返回
+
+**🕘 14:00-14:30 | API控制器开发 (0.5h)**
+
+- ✅ 创建AuthController - @RestController + @RequestMapping("/api/v1/auth")
+- ✅ 实现POST /login接口 - @Valid触发参数校验
+- ✅ 配置CORS跨域 - @CrossOrigin(origins = "http://localhost:5173")
+- ✅ 调用AuthService.login - 传递请求，返回响应
+- ✅ 添加logout占位接口 - 待US002实现
+- **成果**: 登录API接口完成，支持前端调用
+
+**🕘 14:30-15:30 | 前端登录页面开发 (1h)**
+
+- ✅ 创建Login.vue组件 (627行) - 使用frontend-design skill生成
+- ✅ 设计紫色渐变主题 - linear-gradient(135deg, #667eea, #764ba2)
+- ✅ 实现玻璃态卡片 - backdrop-filter: blur(10px)
+- ✅ 集成Element Plus表单组件 - el-form + el-input
+- ✅ 添加表单验证规则:
+  - 用户名长度3-20字符
+  - 密码长度6-30字符
+  - 必填项验证
+- ✅ 实现登录逻辑:
+  - 调用authApi.login()
+  - 成功：保存token到localStorage，跳转到首页
+  - 失败：ElMessage.error显示错误信息
+- ✅ 添加加载动画 - loading状态，按钮禁用
+- **成果**: 登录页面完成，UI美观，体验流畅
+
+**🕘 15:30-16:00 | API封装与路由配置 (0.5h)**
+
+- ✅ 创建src/api/auth.ts - authApi.login()方法
+- ✅ 创建src/utils/request.ts - Axios实例，拦截器配置
+- ✅ 配置请求拦截器 - 自动添加Authorization header
+- ✅ 配置响应拦截器 - 401自动跳转登录页
+- ✅ 更新路由配置 - /login路径映射到Login.vue
+- **成果**: 前端API封装完成，支持Token认证
+
+**🕘 16:00-17:00 | 集成测试与验收 (1h)**
+
+- ✅ 启动后端服务 - mvnw.cmd spring-boot:run (端口8080)
+- ✅ 启动前端服务 - npm run dev (端口5173)
+- ✅ 测试admin账号登录 - 成功，跳转到首页
+- ✅ 测试错误密码 - 显示"用户名或密码错误"
+- ✅ 测试不存在用户 - 显示"用户名或密码错误"
+- ✅ 验证token保存 - localStorage包含"token"字段
+- ✅ 验证后端日志 - "用户登录成功, 用户ID: 1, 用户名: admin"
+- ✅ 检查6个验收标准 - 全部通过✅
+- 🏆 **任务验收完成**: US001所有验收标准达成，登录功能正常工作
+- **成果**: 登录功能集成测试通过，质量达标
+
+**技术难点解决**:
+1. **BCrypt密码验证** - 使用PasswordEncoder.matches()而非equals()比较
+2. **异常信息统一** - 用户名不存在和密码错误返回相同信息，防止用户名枚举攻击
+3. **CORS跨域配置** - @CrossOrigin注解配置localhost:5173白名单
+4. **前端Token管理** - localStorage持久化，页面刷新不丢失登录状态
+
+**质量保证**:
+- ✅ 代码符合阿里巴巴Java开发手册
+- ✅ 使用Lombok减少样板代码
+- ✅ 完整的日志记录（info + error）
+- ✅ 统一异常处理机制
+- ✅ 前端表单验证完整
+
+---
+
 ## 📊 项目度量指标
 
 ### 验收通过情况
