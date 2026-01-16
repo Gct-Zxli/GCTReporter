@@ -8,7 +8,7 @@ import com.gct.reportgenerator.exception.BusinessException;
 import com.gct.reportgenerator.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 public class UserService {
     
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
     
     /**
      * 创建用户
@@ -44,11 +44,15 @@ public class UserService {
             throw new BusinessException("USER_EXISTS", "用户名已存在");
         }
         
+        // 生成下一个ID
+        Long nextId = userRepository.findMaxId() + 1;
+        
         // 加密密码
         String encryptedPassword = passwordEncoder.encode(request.getPassword());
         
         // 创建用户实体
         User user = User.builder()
+                .id(nextId)
                 .username(request.getUsername())
                 .password(encryptedPassword)
                 .role(request.getRole())

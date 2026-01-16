@@ -45,6 +45,5 @@ public class CreateUserRequest {
     /**
      * 是否启用（默认true）
      */
-    @Builder.Default
-    private Boolean enabled = true;
+    private Boolean enabled;
 }

@@ -23,6 +23,7 @@ public class SecurityConfig {
         // CSRF protection will be enabled in US001 (User Login) story
         // TODO: Enable CSRF protection and implement proper authentication in US001
         http
+            .cors(cors -> cors.configure(http))  // 启用CORS
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();

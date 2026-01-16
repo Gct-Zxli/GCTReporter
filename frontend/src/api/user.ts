@@ -1,6 +1,16 @@
 import request from '@/utils/request'
 
 /**
+ * API统一响应格式
+ */
+export interface ApiResponse<T> {
+  code: string
+  message: string
+  data: T
+  timestamp: number
+}
+
+/**
  * 用户DTO
  */
 export interface UserDTO {
@@ -39,34 +49,34 @@ export const userApi = {
    * 获取所有用户
    */
   getAllUsers() {
-    return request.get<UserDTO[]>('/api/v1/users')
+    return request.get<ApiResponse<UserDTO[]>>('/api/v1/users')
   },
 
   /**
    * 根据ID获取用户
    */
   getUserById(id: number) {
-    return request.get<UserDTO>(`/api/v1/users/${id}`)
+    return request.get<ApiResponse<UserDTO>>(`/api/v1/users/${id}`)
   },
 
   /**
    * 创建用户
    */
   createUser(data: CreateUserRequest) {
-    return request.post<UserDTO>('/api/v1/users', data)
+    return request.post<ApiResponse<UserDTO>>('/api/v1/users', data)
   },
 
   /**
    * 更新用户
    */
   updateUser(id: number, data: UpdateUserRequest) {
-    return request.put<UserDTO>(`/api/v1/users/${id}`, data)
+    return request.put<ApiResponse<UserDTO>>(`/api/v1/users/${id}`, data)
   },
 
   /**
    * 删除用户
    */
   deleteUser(id: number) {
-    return request.delete(`/api/v1/users/${id}`)
+    return request.delete<ApiResponse<void>>(`/api/v1/users/${id}`)
   }
 }
