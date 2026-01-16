@@ -171,35 +171,33 @@ const handleCommand = (command: string) => {
 
 // 确认登出
 const confirmLogout = async () => {
+  logoutLoading.value = true
+  
   try {
-    logoutLoading.value = true
-
-    // 调用登出API
+    // 尝试调用登出API（不阻塞后续流程）
     await authApi.logout()
-
-    // 清除本地存储
-    localStorage.removeItem('token')
-    localStorage.removeItem('userId')
-    localStorage.removeItem('username')
-    localStorage.removeItem('role')
-
-    // 显示成功提示
-    ElMessage.success('已成功退出登录')
-
-    // 关闭对话框
-    logoutDialogVisible.value = false
-
-    // 延迟跳转到登录页
-    setTimeout(() => {
-      router.push('/login')
-    }, 800)
-
   } catch (error: any) {
-    console.error('登出失败:', error)
-    ElMessage.error('退出登录失败，请稍后重试')
-  } finally {
-    logoutLoading.value = false
+    // 忽略API错误，确保登出流程继续
+    console.log('登出API调用失败，继续执行本地登出:', error)
   }
+  
+  // 无论API是否成功，都清除本地存储
+  localStorage.removeItem('token')
+  localStorage.removeItem('userId')
+  localStorage.removeItem('username')
+  localStorage.removeItem('role')
+  
+  // 显示成功提示
+  ElMessage.success('已成功退出登录')
+  
+  // 关闭对话框
+  logoutDialogVisible.value = false
+  logoutLoading.value = false
+  
+  // 延迟跳转到登录页
+  setTimeout(() => {
+    router.push('/login')
+  }, 800)
 }
 </script>
 
@@ -228,6 +226,47 @@ const confirmLogout = async () => {
   align-items: center;
   justify-content: space-between;
   gap: 32px;
+}
+
+/* 平板适配 */
+@media (max-width: 768px) {
+  .header-container {
+    padding: 0 16px;
+    gap: 16px;
+  }
+  
+  .header-nav {
+    gap: 8px;
+  }
+  
+  .nav-item span {
+    display: none;
+  }
+  
+  .nav-item {
+    padding: 8px 12px;
+  }
+}
+
+/* 手机适配 */
+@media (max-width: 480px) {
+  .header-container {
+    padding: 0 12px;
+    height: 56px;
+  }
+  
+  .logo-text {
+    display: none;
+  }
+  
+  .user-info {
+    display: none;
+  }
+  
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 /* Logo 区域 */

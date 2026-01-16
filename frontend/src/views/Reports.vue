@@ -14,6 +14,9 @@ import AppHeader from '@/components/AppHeader.vue'
 
 <style scoped>
 .page-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
   min-height: 100vh;
   background: #f8fafc;
 }
@@ -34,5 +37,31 @@ h1 {
 p {
   font-size: 16px;
   color: #64748b;
+}
+
+/* 平板适配 */
+@media (max-width: 768px) {
+  .page-main {
+    padding: 24px 16px;
+  }
+  
+  h1 {
+    font-size: 28px;
+  }
+}
+
+/* 手机适配 */
+@media (max-width: 480px) {
+  .page-main {
+    padding: 20px 12px;
+  }
+  
+  h1 {
+    font-size: 24px;
+  }
+  
+  p {
+    font-size: 15px;
+  }
 }
 </style>

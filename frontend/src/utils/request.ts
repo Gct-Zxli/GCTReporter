@@ -31,33 +31,14 @@ request.interceptors.response.use(
     return response
   },
   (error) => {
-    if (error.response) {
-      const { status, data } = error.response
-
-      switch (status) {
-        case 401:
-          ElMessage.error('未登录或登录已过期')
-          localStorage.clear()
-          window.location.href = '/login'
-          break
-        case 403:
-          ElMessage.error('无权限访问')
-          break
-        case 404:
-          ElMessage.error('请求的资源不存在')
-          break
-        case 500:
-          ElMessage.error(data?.message || '服务器错误')
-          break
-        default:
-          ElMessage.error(data?.message || '请求失败')
-      }
-    } else if (error.request) {
-      ElMessage.error('网络错误，请检查网络连接')
-    } else {
-      ElMessage.error('请求配置错误')
+    // 对于特定的401错误（Session过期），自动跳转到登录页
+    if (error.response?.status === 401 && error.response?.data?.code === 'SESSION_EXPIRED') {
+      ElMessage.warning('登录已过期，请重新登录')
+      localStorage.clear()
+      window.location.href = '/login'
     }
-
+    
+    // 将错误抛出，让调用方自行处理
     return Promise.reject(error)
   }
 )

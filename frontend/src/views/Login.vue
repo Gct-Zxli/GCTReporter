@@ -194,19 +194,36 @@ const handleLogin = async () => {
     }, 1000)
 
   } catch (error: any) {
+    // 打印错误详情用于调试
+    console.error('登录错误:', error)
+    console.error('错误响应:', error.response)
+    
     // 显示错误信息
     if (error.response) {
       const { status, data } = error.response
       
       if (status === 401) {
-        errorMessage.value = '用户名或密码错误'
+        // 密码错误或用户不存在
+        errorMessage.value = data?.message || '用户名或密码错误'
       } else if (status === 403) {
-        errorMessage.value = '账号已被禁用，请联系管理员'
+        // 账号被禁用
+        errorMessage.value = data?.message || '账号已被禁用，请联系管理员'
+      } else if (status === 400) {
+        // 参数验证错误
+        errorMessage.value = data?.message || '请求参数错误'
+      } else if (status === 500) {
+        // 服务器错误
+        errorMessage.value = data?.message || '服务器错误，请稍后重试'
       } else {
+        // 其他错误
         errorMessage.value = data?.message || '登录失败，请稍后重试'
       }
+    } else if (error.request) {
+      // 网络错误或服务器无响应
+      errorMessage.value = '网络错误，请检查网络连接或确认后端服务已启动'
     } else {
-      errorMessage.value = '网络错误，请检查网络连接'
+      // 请求配置错误
+      errorMessage.value = '请求失败，请稍后重试'
     }
 
     // 3秒后自动清除错误信息
@@ -224,6 +241,8 @@ const handleLogin = async () => {
 /* 容器样式 */
 .login-container {
   position: relative;
+  width: 100%;
+  height: 100%;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -333,11 +352,11 @@ const handleLogin = async () => {
 /* 登录卡片 */
 .login-card {
   position: relative;
-  width: 440px;
+  width: 520px;
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(20px);
   border-radius: 24px;
-  padding: 48px 40px;
+  padding: 48px 30px;
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.15),
     0 0 0 1px rgba(255, 255, 255, 0.5) inset;
@@ -424,11 +443,13 @@ const handleLogin = async () => {
 
 /* 表单样式 */
 .login-form {
+  width: 100%;
   animation: fade-in 0.8s ease-out 0.4s both;
 }
 
 .input-wrapper {
   position: relative;
+  width: 100%;
 }
 
 .input-icon {
@@ -610,8 +631,8 @@ const handleLogin = async () => {
 @media (max-width: 768px) {
   .login-card {
     width: 90%;
-    max-width: 400px;
-    padding: 40px 32px;
+    max-width: 480px;
+    padding: 40px 28px;
   }
 
   .login-title {
@@ -621,6 +642,57 @@ const handleLogin = async () => {
   .orb-1,
   .orb-2 {
     filter: blur(60px);
+  }
+}
+
+/* 手机适配 */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 20px;
+  }
+  
+  .login-card {
+    width: 100%;
+    max-width: none;
+    padding: 32px 20px;
+    border-radius: 20px;
+  }
+  
+  .login-title {
+    font-size: 22px;
+  }
+  
+  .login-subtitle {
+    font-size: 13px;
+  }
+  
+  .logo-icon {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .login-header {
+    margin-bottom: 32px;
+  }
+  
+  .version-info {
+    font-size: 12px;
+    bottom: 16px;
+  }
+  
+  .test-accounts-hint {
+    font-size: 12px;
+    padding: 10px;
+  }
+  
+  .orb-1 {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .orb-2 {
+    width: 250px;
+    height: 250px;
   }
 }
 </style>

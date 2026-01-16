@@ -33,6 +33,9 @@ import AppHeader from '@/components/AppHeader.vue'
 
 <style scoped>
 .dashboard-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
   min-height: 100vh;
   background: #f8fafc;
 }
@@ -63,12 +66,60 @@ import AppHeader from '@/components/AppHeader.vue'
   margin: 0 0 48px;
 }
 
+/* 平板适配 */
+@media (max-width: 768px) {
+  .welcome-section h1 {
+    font-size: 32px;
+  }
+  
+  .welcome-section p {
+    font-size: 16px;
+    margin: 0 0 32px;
+  }
+  
+  .dashboard-main {
+    padding: 24px 16px;
+  }
+}
+
+/* 手机适配 */
+@media (max-width: 480px) {
+  .welcome-section {
+    padding: 40px 16px;
+  }
+  
+  .welcome-section h1 {
+    font-size: 28px;
+  }
+  
+  .welcome-section p {
+    font-size: 15px;
+    margin: 0 0 24px;
+  }
+  
+  .dashboard-main {
+    padding: 20px 12px;
+  }
+}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 24px;
   max-width: 800px;
   margin: 0 auto;
+}
+
+/* 手机适配 - 统计卡片 */
+@media (max-width: 640px) {
+  .stats {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .stat-card {
+    padding: 24px;
+  }
 }
 
 .stat-card {
