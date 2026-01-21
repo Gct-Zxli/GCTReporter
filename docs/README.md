@@ -50,10 +50,8 @@ docs/
 │   ├── report-create-step3-4.html      # 报表创建步骤3-4原型
 │   └── report-preview.html             # 报表预览原型
 │
-├── 🔒 分支保护/                        # Git工作流规范
-│   ├── BRANCH_PROTECTION.md           # 分支保护规范
-│   ├── CODEOWNERS                     # 代码所有者配置
-│   └── PULL_REQUEST_TEMPLATE.md       # PR模板
+├── � Git工作流文档/                   # Git工作流规范说明
+│   └── BRANCH_PROTECTION.md           # 分支保护规范说明
 │
 ├── 📝 提示词库/                        # AI辅助提示词
 │   ├── 需求澄清提示词模板_V2.0优化版.md
