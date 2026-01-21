@@ -58,15 +58,22 @@
         <div class="step-content">
           <!-- Step 1: 基本信息 -->
           <div v-show="currentStep === 0">
-            <el-form :model="formData" label-width="100px">
-              <el-form-item label="报表名称" required>
-                <el-input v-model="formData.name" placeholder="请输入报表名称" />
+            <el-form :model="formData" :rules="formRules" ref="basicFormRef" label-width="100px">
+              <el-form-item label="报表名称" prop="name" required>
+                <el-input 
+                  v-model="formData.name" 
+                  placeholder="请输入报表名称（最多50字符）"
+                  maxlength="50"
+                  show-word-limit
+                  @blur="checkNameUniqueness" />
               </el-form-item>
               <el-form-item label="报表描述">
                 <el-input 
                   v-model="formData.description" 
                   type="textarea" 
                   :rows="3"
+                  maxlength="500"
+                  show-word-limit
                   placeholder="请输入报表描述" />
               </el-form-item>
             </el-form>
@@ -79,10 +86,16 @@
 
           <!-- Step 3: 参数配置 -->
           <div v-show="currentStep === 2">
-            <el-button @click="addParam" type="primary" size="small" style="margin-bottom: 16px">
-              <el-icon><Plus /></el-icon>
-              添加参数
-            </el-button>
+            <div style="margin-bottom: 16px">
+              <el-button @click="addParam" type="primary" size="small">
+                <el-icon><Plus /></el-icon>
+                添加参数
+              </el-button>
+              <el-button @click="extractParamsFromSql" type="success" size="small" style="margin-left: 8px">
+                <el-icon><MagicStick /></el-icon>
+                从SQL提取参数
+              </el-button>
+            </div>
             <el-table :data="formData.params" border>
               <el-table-column label="参数名称" width="200">
                 <template #default="scope">
@@ -104,8 +117,22 @@
                   <el-checkbox v-model="scope.row.required" />
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="100">
+              <el-table-column label="操作" width="150">
                 <template #default="scope">
+                  <el-button 
+                    link 
+                    size="small"
+                    :disabled="scope.$index === 0"
+                    @click="moveParamUp(scope.$index)">
+                    ↑
+                  </el-button>
+                  <el-button 
+                    link 
+                    size="small"
+                    :disabled="scope.$index === formData.params.length - 1"
+                    @click="moveParamDown(scope.$index)">
+                    ↓
+                  </el-button>
                   <el-button 
                     link 
                     type="danger" 
@@ -119,24 +146,40 @@
 
           <!-- Step 4: 列配置 -->
           <div v-show="currentStep === 3">
-            <el-button @click="addColumn" type="primary" size="small" style="margin-bottom: 16px">
-              <el-icon><Plus /></el-icon>
-              添加列
-            </el-button>
+            <div style="margin-bottom: 16px">
+              <el-button @click="addColumn" type="primary" size="small">
+                <el-icon><Plus /></el-icon>
+                添加列
+              </el-button>
+              <el-button @click="extractColumnsFromSql" type="success" size="small" style="margin-left: 8px" :loading="extractingColumns">
+                <el-icon><MagicStick /></el-icon>
+                从SQL提取列
+              </el-button>
+            </div>
             <el-table :data="formData.columns" border>
-              <el-table-column label="字段名" width="200">
+              <el-table-column label="字段名" width="150">
                 <template #default="scope">
                   <el-input v-model="scope.row.fieldName" placeholder="字段名" />
                 </template>
               </el-table-column>
-              <el-table-column label="显示名称" width="200">
+              <el-table-column label="显示名称" width="150">
                 <template #default="scope">
                   <el-input v-model="scope.row.displayName" placeholder="显示名称" />
                 </template>
               </el-table-column>
-              <el-table-column label="格式类型" width="150">
+              <el-table-column label="列宽(px)" width="120">
                 <template #default="scope">
-                  <el-select v-model="scope.row.formatType" placeholder="选择格式">
+                  <el-input-number 
+                    v-model="scope.row.width" 
+                    :min="50" 
+                    :max="500"
+                    controls-position="right" 
+                    size="small" />
+                </template>
+              </el-table-column>
+              <el-table-column label="格式类型" width="130">
+                <template #default="scope">
+                  <el-select v-model="scope.row.formatType" placeholder="选择格式" size="small">
                     <el-option label="文本" value="TEXT" />
                     <el-option label="数字" value="NUMBER" />
                     <el-option label="日期" value="DATE" />
@@ -145,8 +188,27 @@
                   </el-select>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="100">
+              <el-table-column label="显示" width="80" align="center">
                 <template #default="scope">
+                  <el-switch v-model="scope.row.visible" />
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="150">
+                <template #default="scope">
+                  <el-button 
+                    link 
+                    size="small"
+                    :disabled="scope.$index === 0"
+                    @click="moveColumnUp(scope.$index)">
+                    ↑
+                  </el-button>
+                  <el-button 
+                    link 
+                    size="small"
+                    :disabled="scope.$index === formData.columns.length - 1"
+                    @click="moveColumnDown(scope.$index)">
+                    ↓
+                  </el-button>
                   <el-button 
                     link 
                     type="danger" 
@@ -176,8 +238,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
+import { Plus, Edit, Delete, MagicStick } from '@element-plus/icons-vue'
 import AppHeader from '@/components/AppHeader.vue'
 import SqlEditor from '@/components/SqlEditor.vue'
 import axios from 'axios'
@@ -192,6 +254,8 @@ interface ReportColumn {
   fieldName: string
   displayName: string
   formatType: string
+  width: number
+  visible: boolean
 }
 
 interface ReportFormData {
@@ -218,6 +282,8 @@ const isEdit = ref(false)
 const currentEditId = ref<number | null>(null)
 const currentStep = ref(0)
 const submitting = ref(false)
+const extractingColumns = ref(false)
+const basicFormRef = ref<FormInstance>()
 
 const formData = ref<ReportFormData>({
   name: '',
@@ -226,6 +292,14 @@ const formData = ref<ReportFormData>({
   params: [],
   columns: []
 })
+
+// 表单验证规则
+const formRules: FormRules = {
+  name: [
+    { required: true, message: '请输入报表名称', trigger: 'blur' },
+    { min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur' }
+  ]
+}
 
 // 加载报表列表
 const loadReports = async () => {
@@ -340,18 +414,165 @@ const removeParam = (index: number) => {
   formData.value.params.splice(index, 1)
 }
 
+// 参数上移
+const moveParamUp = (index: number) => {
+  if (index > 0) {
+    const params = formData.value.params
+    ;[params[index - 1], params[index]] = [params[index], params[index - 1]]
+  }
+}
+
+// 参数下移
+const moveParamDown = (index: number) => {
+  if (index < formData.value.params.length - 1) {
+    const params = formData.value.params
+    ;[params[index], params[index + 1]] = [params[index + 1], params[index]]
+  }
+}
+
+// 从SQL提取参数
+const extractParamsFromSql = () => {
+  const sql = formData.value.sqlContent
+  if (!sql) {
+    ElMessage.warning('请先输入SQL内容')
+    return
+  }
+
+  // 使用正则表达式提取 :paramName 格式的参数
+  const paramPattern = /:(\w+)/g
+  const matches = sql.matchAll(paramPattern)
+  const paramNames = new Set<string>()
+  
+  for (const match of matches) {
+    paramNames.add(match[1])
+  }
+
+  if (paramNames.size === 0) {
+    ElMessage.info('未找到参数（格式: :paramName）')
+    return
+  }
+
+  // 获取已存在的参数名
+  const existingParamNames = new Set(formData.value.params.map(p => p.paramName))
+
+  // 添加新参数
+  let addedCount = 0
+  paramNames.forEach(paramName => {
+    if (!existingParamNames.has(paramName)) {
+      formData.value.params.push({
+        paramName,
+        paramType: 'STRING',
+        required: false
+      })
+      addedCount++
+    }
+  })
+
+  ElMessage.success(`提取成功，新增 ${addedCount} 个参数`)
+}
+
 // 添加列
 const addColumn = () => {
   formData.value.columns.push({
     fieldName: '',
     displayName: '',
-    formatType: 'TEXT'
+    formatType: 'TEXT',
+    width: 150,
+    visible: true
   })
 }
 
 // 移除列
 const removeColumn = (index: number) => {
   formData.value.columns.splice(index, 1)
+}
+
+// 列上移
+const moveColumnUp = (index: number) => {
+  if (index > 0) {
+    const columns = formData.value.columns
+    ;[columns[index - 1], columns[index]] = [columns[index], columns[index - 1]]
+  }
+}
+
+// 列下移
+const moveColumnDown = (index: number) => {
+  if (index < formData.value.columns.length - 1) {
+    const columns = formData.value.columns
+    ;[columns[index], columns[index + 1]] = [columns[index + 1], columns[index]]
+  }
+}
+
+// 从SQL提取列
+const extractColumnsFromSql = async () => {
+  const sql = formData.value.sqlContent
+  if (!sql) {
+    ElMessage.warning('请先输入SQL内容')
+    return
+  }
+
+  extractingColumns.value = true
+  try {
+    const response = await axios.post('/api/v1/reports/extract-columns', {
+      sqlContent: sql,
+      params: formData.value.params
+    })
+    
+    const extractedColumns = response.data
+    if (extractedColumns && extractedColumns.length > 0) {
+      // 获取已存在的字段名
+      const existingFieldNames = new Set(formData.value.columns.map(c => c.fieldName))
+      
+      // 添加新列
+      let addedCount = 0
+      extractedColumns.forEach((col: any) => {
+        if (!existingFieldNames.has(col.fieldName)) {
+          formData.value.columns.push({
+            fieldName: col.fieldName,
+            displayName: col.displayName || col.fieldName,
+            formatType: col.formatType || 'TEXT',
+            width: 150,
+            visible: true
+          })
+          addedCount++
+        }
+      })
+      
+      ElMessage.success(`提取成功，新增 ${addedCount} 列`)
+    } else {
+      ElMessage.info('未能提取到列信息')
+    }
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || '提取列失败')
+  } finally {
+    extractingColumns.value = false
+  }
+}
+
+// 检查名称唯一性
+const checkNameUniqueness = async () => {
+  const name = formData.value.name
+  if (!name) return
+
+  // 编辑模式下，如果名称未改变，不需要检查
+  if (isEdit.value && currentEditId.value) {
+    const originalReport = reports.value.find(r => r.id === currentEditId.value)
+    if (originalReport && originalReport.name === name) {
+      return
+    }
+  }
+
+  try {
+    const response = await axios.get('/api/v1/reports/check-name', {
+      params: { name }
+    })
+    if (response.data.exists) {
+      ElMessage.warning('报表名称已存在，请使用其他名称')
+      basicFormRef.value?.validateField('name')
+    }
+  } catch (error: any) {
+    console.error('检查名称失败:', error)
+  }
 }
 
 // 提交表单

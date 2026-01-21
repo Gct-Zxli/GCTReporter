@@ -209,4 +209,89 @@ public class ReportService {
         
         log.info("Report {} deleted successfully", id);
     }
+
+    /**
+     * 检查报表名称是否已存在
+     */
+    public boolean isNameExists(String name) {
+        log.info("Checking if report name exists: {}", name);
+        return reportRepository.findByNameContaining(name).stream()
+                .anyMatch(report -> report.getName().equals(name));
+    }
+
+    /**
+     * 从SQL提取列信息
+     */
+    public List<ReportColumnDTO> extractColumnsFromSql(String sqlContent, List<ReportParamDTO> params) {
+        log.info("Extracting columns from SQL");
+        
+        if (sqlContent == null || sqlContent.trim().isEmpty()) {
+            throw new BusinessException("INVALID_SQL", "SQL内容不能为空");
+        }
+
+        // 这里简化实现，实际应该执行SQL查询并获取ResultSetMetaData
+        // 为了演示，我们使用正则表达式从SELECT子句提取列名
+        List<ReportColumnDTO> columns = new java.util.ArrayList<>();
+        
+        try {
+            // 提取SELECT和FROM之间的内容
+            String selectClause = extractSelectClause(sqlContent);
+            if (selectClause != null && !selectClause.trim().isEmpty()) {
+                String[] fields = selectClause.split(",");
+                for (String field : fields) {
+                    field = field.trim();
+                    if (field.isEmpty()) continue;
+                    
+                    ReportColumnDTO column = new ReportColumnDTO();
+                    
+                    // 处理别名 (field AS alias 或 field alias)
+                    String fieldName;
+                    if (field.toLowerCase().contains(" as ")) {
+                        String[] parts = field.split("(?i)\\s+as\\s+");
+                        fieldName = parts.length > 1 ? parts[1].trim() : parts[0].trim();
+                    } else if (field.contains(".")) {
+                        // 处理 table.column 格式
+                        String[] parts = field.split("\\.");
+                        fieldName = parts[parts.length - 1].trim();
+                    } else {
+                        fieldName = field;
+                    }
+                    
+                    // 移除引号
+                    fieldName = fieldName.replaceAll("[\"'`]", "");
+                    
+                    column.setFieldName(fieldName);
+                    column.setDisplayName(fieldName);
+                    column.setFormatType("TEXT"); // 默认为文本类型
+                    
+                    columns.add(column);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to extract columns from SQL", e);
+            throw new BusinessException("SQL_PARSE_ERROR", "解析SQL失败: " + e.getMessage());
+        }
+        
+        log.info("Extracted {} columns from SQL", columns.size());
+        return columns;
+    }
+
+    /**
+     * 从SQL中提取SELECT子句
+     */
+    private String extractSelectClause(String sql) {
+        // 移除注释
+        sql = sql.replaceAll("--[^\n]*", "");
+        sql = sql.replaceAll("/\\*.*?\\*/", "");
+        
+        // 查找SELECT和FROM之间的内容
+        int selectIndex = sql.toLowerCase().indexOf("select");
+        int fromIndex = sql.toLowerCase().indexOf("from");
+        
+        if (selectIndex >= 0 && fromIndex > selectIndex) {
+            return sql.substring(selectIndex + 6, fromIndex).trim();
+        }
+        
+        return null;
+    }
 }

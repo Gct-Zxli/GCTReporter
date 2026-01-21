@@ -2,6 +2,7 @@ package com.gct.reportgenerator.controller;
 
 import com.gct.reportgenerator.dto.ReportCreateRequest;
 import com.gct.reportgenerator.dto.ReportDTO;
+import com.gct.reportgenerator.dto.ReportColumnDTO;
 import com.gct.reportgenerator.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Slf4j
 @RestController
@@ -69,5 +72,30 @@ public class ReportController {
         log.info("DELETE /api/v1/reports/{} - Deleting report", id);
         reportService.deleteReport(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 检查报表名称是否存在
+     */
+    @GetMapping("/check-name")
+    public ResponseEntity<Map<String, Boolean>> checkNameExists(@RequestParam String name) {
+        log.info("GET /api/v1/reports/check-name - Checking name: {}", name);
+        boolean exists = reportService.isNameExists(name);
+        Map<String, Boolean> result = new HashMap<>();
+        result.put("exists", exists);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * 从SQL提取列信息
+     */
+    @PostMapping("/extract-columns")
+    public ResponseEntity<List<ReportColumnDTO>> extractColumns(@RequestBody ReportCreateRequest request) {
+        log.info("POST /api/v1/reports/extract-columns - Extracting columns from SQL");
+        List<ReportColumnDTO> columns = reportService.extractColumnsFromSql(
+            request.getSqlContent(), 
+            request.getParams()
+        );
+        return ResponseEntity.ok(columns);
     }
 }
