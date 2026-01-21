@@ -28,6 +28,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, adminOnly: true }
   },
   {
+    path: '/sql-editor-test',
+    name: 'SqlEditorTest',
+    component: () => import('@/views/SqlEditorTest.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/',
     redirect: '/login'
   }

@@ -18,5 +18,18 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  test: {
+    globals: true,
+    environment: 'happy-dom',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'src/**/*.spec.ts',
+        'src/**/__tests__/'
+      ]
+    }
   }
 })
