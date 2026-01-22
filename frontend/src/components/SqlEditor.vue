@@ -166,6 +166,7 @@ const loadDraft = () => {
     const draft = localStorage.getItem(props.draftKey)
     if (draft && !props.modelValue) {
       code.value = draft
+      emit('update:modelValue', draft)  // 同步到父组件
       ElMessage.success('已加载上次的草稿')
     }
   } catch (error) {

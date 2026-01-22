@@ -81,7 +81,9 @@
 
           <!-- Step 2: SQL编辑 -->
           <div v-show="currentStep === 1">
-            <SqlEditor v-model="formData.sqlContent" />
+            <SqlEditor 
+              v-model="formData.sqlContent" 
+              :draft-key="isEdit ? `sql-editor-draft-${currentEditId}` : 'sql-editor-draft-new'" />
           </div>
 
           <!-- Step 3: 参数配置 -->
@@ -339,6 +341,8 @@ const handleCreate = () => {
     params: [],
     columns: []
   }
+  // 清除新建报表的草稿，避免自动加载旧草稿
+  localStorage.removeItem('sql-editor-draft-new')
   dialogVisible.value = true
 }
 
